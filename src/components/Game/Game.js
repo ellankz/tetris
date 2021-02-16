@@ -107,7 +107,9 @@ function Game() {
       function drawShape() {
         for (let i = 0; i < fallingShape.length; i++) {
           for (let u = 0; u < fallingShape[0].length; u++) {
-            field[newPos.y + i][newPos.x + u] = fallingShape[i][u];
+            if (fallingShape[i][u] !== '0') {
+              field[newPos.y + i][newPos.x + u] = fallingShape[i][u];
+            }
           }
         }
       }
@@ -139,7 +141,6 @@ function Game() {
   
       return mapShapeToLayedTiles();
     };
-
     
     function moveShape(direction) {
       let newPos;
@@ -180,18 +181,29 @@ function Game() {
         setDirection('down');
       }
     }
-  
-    document.addEventListener('keyup', handleKey);
 
+    function dropNewShape () {
+      setFieldState(cloneMatrix(fieldWithShape));
+      setFallingShape(createRandomShape(getRandomColor()));
+      setShapePosition({x: FIELD_CENTER_X, y: 0});
+    }
+    
     if (direction) {
       const newPos = moveShape(direction);
+      const isCollided = detectCollision(newPos);
       setDirection(null);
 
-      if (!detectCollision(newPos) && (shapePosition.x !== newPos.x || shapePosition.y !== newPos.y)){
+      if ((isCollided && direction === 'down') || shapePosition.y >= BOTTOM_WALL_Y - fallingShape.length) {
+        dropNewShape();
+      }
+      
+      if (!isCollided && (shapePosition.x !== newPos.x || shapePosition.y !== newPos.y)){
         updateField(newPos);
       }
     }
 
+    document.addEventListener('keyup', handleKey);
+    
     return () => {
       document.removeEventListener('keyup', handleKey);
     };
