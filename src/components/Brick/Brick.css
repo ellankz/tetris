@@ -1,0 +1,6 @@
+.block-brick {
+  display: block;
+  width: 30px;
+  height: 30px;
+  background-color: rgb(68, 39, 7);
+}
