@@ -1,37 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import Field from '../Field/Field';
-import { cloneMatrix } from '../../helpers';
+import Control from '../Control/Control';
+import { cloneMatrix, getRandomColor, createRandomShape } from '../../helpers';
+import { initialFieldState } from '../../constants';
+import './Game.scss';
 
 const FIELD_CENTER_X = 4;
 const RIGHT_WALL_X = 11;
 const BOTTOM_WALL_Y = 20;
 
-
-
 function Game() {
-  const initialFieldState = [
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','0','0','0','0','0','0','0','0','0','0','#'],
-    ['#','#','#','#','#','#','#','#','#','#','#','#'],
-  ];
 
   const [fieldState, setFieldState] = useState(cloneMatrix(initialFieldState));
 
@@ -43,52 +21,7 @@ function Game() {
 
   const [direction, setDirection] = useState(null);
 
-  function getRandomColor() {
-    const colors = ['r', 'g', 'b', 'p', 'c', 'y'];
-    const randNum = Math.floor(Math.random() * colors.length);
-    const randColor = colors[randNum];
-
-    return randColor;
-  }
-
-  function createRandomShape(colorLetter) {
-    const shapes = [
-      [
-        ['1', '1'],
-        ['1', '1'],
-      ],
-      [
-        ['0', '1', '0'],
-        ['1', '1', '1'],
-      ],
-      [
-        ['1', '1', '1', '1', '1'],
-      ],
-      [
-        ['1', '0'],
-        ['1', '0'],
-        ['1', '1'],
-      ],
-      [
-        ['0', '1'],
-        ['0', '1'],
-        ['1', '1'],
-      ],
-      [
-        ['1', '0'],
-        ['1', '1'],
-        ['0', '1'],
-      ],
-      [
-        ['0', '1'],
-        ['1', '1'],
-        ['1', '0']
-      ]
-    ];
-    const randNum = Math.floor(Math.random() * shapes.length);
-    const newShape = shapes[randNum].map((row) => row.map((tile) => tile === '1' ? colorLetter : tile));
-    return newShape;
-  }
+  const [speedDropLinesLeft, setSpeedDropLinesLeft] = useState();
 
   let keyPressTime = useRef();
   keyPressTime.current = new Date().getTime();
@@ -197,7 +130,7 @@ function Game() {
     }
 
     function speedDropShape() {
-      setDirection('down');
+      setSpeedDropLinesLeft(true);
     }
 
     function handleKeyUp(event) {
@@ -241,23 +174,33 @@ function Game() {
       }
       setFieldState(field);
     }
-    
-    if (direction) {
-      const newPos = moveShape(direction);
-      const isCollided = detectCollision(newPos);
-      setDirection(null);
 
-      if ((isCollided && direction === 'down') || shapePosition.y >= BOTTOM_WALL_Y - fallingShape.length) {
-        dropNewShape();
-        const filledRows = checkForFilledLine();
-        if (filledRows.length) clearLine(filledRows);
+    function runGameCycle() {
+      if (direction) {
+        const newPos = moveShape(direction);
+        const isCollided = detectCollision(newPos);
+        if (isCollided) {
+          setSpeedDropLinesLeft(false);
+        }
+        setDirection(null);
+  
+        if ((isCollided && direction === 'down') || shapePosition.y >= BOTTOM_WALL_Y - fallingShape.length) {
+          dropNewShape();
+          const filledRows = checkForFilledLine();
+          if (filledRows.length) clearLine(filledRows);
+        }
+        
+        if (!isCollided && (shapePosition.x !== newPos.x || shapePosition.y !== newPos.y)){
+          updateField(newPos);
+        }
       }
-      
-      if (!isCollided && (shapePosition.x !== newPos.x || shapePosition.y !== newPos.y)){
-        updateField(newPos);
-      }
-
     }
+
+    runGameCycle();
+
+    if (speedDropLinesLeft) {
+      setDirection('down');
+    } 
 
     document.addEventListener('keyup', handleKeyUp);
 
@@ -267,7 +210,7 @@ function Game() {
       document.removeEventListener('keyup', handleKeyUp);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [shapePosition, direction, fallingShape, fieldState, fieldWithShape, initialFieldState]);
+  }, [shapePosition, direction, fallingShape, fieldState, fieldWithShape, speedDropLinesLeft]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -277,8 +220,9 @@ function Game() {
   });
   
   return (
-    <div className="Game">
+    <div className="game">
       <Field state={fieldWithShape} />
+      <Control />
     </div>
   );
 }

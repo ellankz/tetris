@@ -1,5 +1,5 @@
 import BlockFactory from '../BlockFactory/BlockFactory';
-import './Field.css';
+import './Field.scss';
 
 function Field ({state}) {
   function renderRow(row, rowIndex) {

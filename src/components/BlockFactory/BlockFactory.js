@@ -9,17 +9,17 @@ function BlockFactory({blockType}) {
     case '#':
       return <Brick />
     case 'r':
-      return <Tile color='red' />
+      return <Tile color='#5ebde6' />
     case 'g':
-      return <Tile color='green' />
+      return <Tile color='#ed9548' />
     case 'b':
-      return <Tile color='blue' />
+      return <Tile color='#dd6557' />
     case 'p':
-      return <Tile color='pink' />
+      return <Tile color='#4dd4b0' />
     case 'c':
-      return <Tile color='cyan' />
+      return <Tile color='#96dc55' />
     case 'y':
-      return <Tile color='yellow' />
+      return <Tile color='#909090' />
     default:
       break;
   }

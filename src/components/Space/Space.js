@@ -1,4 +1,4 @@
-import './Space.css';
+import './Space.scss';
 
 function Space() {
   return (

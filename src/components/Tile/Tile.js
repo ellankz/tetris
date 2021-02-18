@@ -1,4 +1,4 @@
-import './Tile.css';
+import './Tile.scss';
 
 function Tile({ color }) {
   return (
